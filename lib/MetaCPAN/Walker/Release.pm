@@ -21,10 +21,18 @@ has required => ( is => 'rw', required => 1 );
 
 has _requires => ( is => 'ro', default => sub { {}; } );
 
-sub add_requires {
-	my ($self, $release) = @_;
+has _wanted_by => ( is => 'ro', default => sub { {}; } );
 
-	$self->_requires->{$release} = 1;
+sub add_requires {
+	my ($self, $release, $level) = @_;
+
+	$self->_requires->{$release} = $level;
+}
+
+sub add_wanted_by {
+	my ($self, $release, $level) = @_;
+
+	$self->_wanted_by->{$release} = $level;
 }
 
 sub requires {
@@ -42,6 +50,12 @@ sub update_required {
 	}
 
 	return 0;
+}
+
+sub wanted_by {
+	my $self = shift;
+
+	return sort keys %{$self->_wanted_by};
 }
 
 1;

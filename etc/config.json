@@ -1,0 +1,27 @@
+{
+	"CGI-Compile": {
+		"ignore": true
+	},
+	"CGI-Emulate-PSGI": {
+		"ignore": true
+	},
+	"FCGI": {
+		"ignore": true
+	},
+	"libwww-perl": {
+		"exclude_requires": [ "LWP::Protocol::https", "HTTP::GHTTP" ]
+	},
+	"MooseX-ConfigFromFile": {
+		"exclude_build_requires": [ "MooseX::Getopt" ]
+	},
+	"Test-CleanNamespaces": {
+		"exclude_build_requires": [
+			"Class::MOP::Class",
+			"metaclass",
+			"Moose",
+			"Moose::Exporter",
+			"Moose::Role",
+			"MooseX::Role::Parameterized"
+		]
+	}
+}

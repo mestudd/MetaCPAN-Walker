@@ -30,13 +30,17 @@ sub check_spec_version {
 
 say 'Suggested Releases';
 foreach ($walk->suggested) {
-	say sprintf '%s: want %s (have %s)', $_->name, $_->cpan_meta->version, check_spec_version($_->name);
+	say sprintf '%s: want %s (have %s) wanted by %s',
+		$_->name, $_->cpan_meta->version, check_spec_version($_->name),
+		join(' ', $_->wanted_by);
 }
 
 say '';
 say 'Recommended Releases';
 foreach ($walk->recommended) {
-	say sprintf '%s: want %s (have %s)', $_->name, $_->cpan_meta->version, check_spec_version($_->name);
+	say sprintf '%s: want %s (have %s) wanted by %s',
+		$_->name, $_->cpan_meta->version, check_spec_version($_->name),
+		join(' ', $_->wanted_by);
 }
 
 say '';
@@ -59,4 +63,5 @@ say join(' ', @have);
 
 say '';
 say 'Build order';
-say join(' ', map $_->name, $walk->ordered);
+my @order = $walk->ordered;
+say join(' ', map $_->name, @order);

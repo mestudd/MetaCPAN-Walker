@@ -9,6 +9,7 @@ use namespace::clean;
 our $VERSION = '0.01';
 
 use CPAN::Meta;
+use JSON::XS;
 use List::Util qw(all);
 use MetaCPAN::Walker;
 use MetaCPAN::Walker::Release;
@@ -27,9 +28,15 @@ has build_order => (
 	default => sub { []; },
 );
 
+has config_file => (
+	is => 'ro',
+	default => './etc/config.json',
+);
+
 has _configuration => (
 	is => 'ro',
-	default => sub { {}; },
+	lazy => 1,
+	builder => '_read_config_file',
 );
 
 has _conflicts => (
@@ -42,14 +49,15 @@ has existing_versions => (
 	default => sub { {}; },
 );
 
-has _module_release => (
+has releases => (
 	is => 'ro',
 	default => sub { {}; },
 );
 
-has releases => (
+has _walker => (
 	is => 'ro',
-	default => sub { {}; },
+	lazy => 1,
+	default => sub { MetaCPAN::Walker->new(); },
 );
 
 sub _add_conflict {
@@ -65,10 +73,11 @@ sub _add_conflict {
 	push @{$self->_conflicts->{$distribution}->{paths}}, $path;
 }
 
-sub _add_requires {
-	my ($self, $parent, $distribution) = @_;
+sub _add_relationship {
+	my ($self, $parent, $distribution, $level) = @_;
 
-	$self->releases->{$parent}->add_requires($distribution);
+	$self->releases->{$parent}->add_requires($distribution, $level);
+	$self->releases->{$distribution}->add_wanted_by($parent, $level);
 }
 
 # Track release information.
@@ -79,8 +88,8 @@ sub _add_release {
 	my $distribution = $release->distribution;
 
 	if (exists($self->releases->{$distribution})) {
-		 return $self->releases->{$distribution}
-		 		->update_required($dep->{relationship});
+		return $self->releases->{$distribution}
+			->update_required($dep->{relationship});
 	} else {
 #		use Data::Dumper; print Dumper($release->metadata);
 #		die;
@@ -107,20 +116,21 @@ sub build_from_initial_modules {
 	my @path = ('root');
 	my @relationship = ($REQ_LEVEL{requires});
 
-	my $walker = MetaCPAN::Walker->new();
-	$walker->releases_for_dependency(@modules,
+	$self->_walker->releases_for_dependency(@modules,
 		sub {
 			my ($dep, $release, $level) = @_;
 			my $distribution = $release->distribution;
-$DB::single = $#path > 2;
 			my $parent = $path[-1];
 
 			push @path, $distribution;
 			push @relationship, $REQ_LEVEL{$dep->{relationship}};
 
-			# Completely ignore core and development modules
+			my $config = $self->_configuration->{$distribution} || {};
+
+			# Completely ignore core, development, and ignored modules
 			return 0 if (Module::CoreList::is_core($dep->{module})
-				|| $dep->{phase} eq 'develop');
+				|| $dep->{phase} eq 'develop')
+;#				|| !$config->{ignore};
 
 			# Keep track of conflicting releases
 			if ($dep->{relationship} eq 'conflicts') {
@@ -128,14 +138,12 @@ $DB::single = $#path > 2;
 				return 0;
 			}
 
-#say sprintf '%s\\ %s is %s for %s; from %s version %s',
-#	'|   ' x $level, $dep->{module}, $dep->{relationship}, $dep->{phase},
-#	$distribution, $release->version;
+			my $return = $self->_add_release($release, $dep);
 
-warn '$parent undef' if (!defined $parent);
-			$self->_add_requires($parent, $distribution)
+			$self->_add_relationship($parent, $distribution, $dep->{relationship})
 				if (defined $parent && $parent ne 'root');
-			return $self->_add_release($release, $dep);
+
+			return $return;
 		},
 		sub {
 			my ($dep, $release, $level) = @_;
@@ -149,15 +157,33 @@ warn '$parent undef' if (!defined $parent);
 sub ordered {
 	my $self = shift;
 
+	my @path;
 	my @order;
 	my $r;
 	$r = sub {
 		foreach my $release (@_) {
 			next if ($release->required != 0);
-			next if (grep $release->name eq $release->name, @order);
+			next if (grep $_->name eq $release->name, @order);
+			if (grep $_ eq $release->name, @path) {
+				warn 'recursive loop '.join(' ', @path, $release->name);
+				next;
+			}
+			push @path, $release->name;
 
-			&$r(map $self->releases->{$_}, $release->requires);
+			my $config = $self->_configuration->{$release->name} || {};
+			my @requires;
+			foreach my $r ($release->requires) {
+				if (!grep
+						$self->_walker->release_for_module($_)->distribution eq $r,
+						@{ $config->{exclude_requires} || [] },
+						@{ $config->{exclude_build_requires} || [] },
+				) {
+					push @requires, $self->releases->{$r};
+				}
+			}
+			&$r(@requires);
 			push @order, $release;
+			pop @path;
 		}
 	};
 
@@ -165,6 +191,17 @@ sub ordered {
 
 	return @order;
 }
+
+sub _read_config_file {
+	my $self = shift;
+
+	local $/;
+	open( my $fh, '<', $self->config_file );
+	my $json_text = <$fh>;
+	close ($fh);
+	return decode_json($json_text);
+}
+
 sub recommended {
 	my $self = shift;
 

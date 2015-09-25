@@ -28,6 +28,11 @@ has metacpan => (
 	},
 );
 
+has _module_release => (
+	is => 'ro',
+	default => sub { {}; },
+);
+
 =cut
 sub releases_for_module {
 	my $self = shift;
@@ -53,6 +58,18 @@ sub releases_for_module {
 }
 =cut
 
+sub release_for_module {
+	my ($self, $module) = @_;
+
+	if (!exists $self->_module_release->{$module}) {
+		my $file = $self->metacpan->module($module);
+
+		$self->_module_release->{$module} = $self->metacpan->release($file->distribution)
+			if ($file);
+	}
+	return $self->_module_release->{$module};
+}
+
 sub releases_for_dependency {
 	my $self = shift;
 
@@ -69,12 +86,8 @@ sub _releases_for_dependency {
 	# would need to merge the phases and/or relationships
 	foreach my $dep (@_) {
 		eval {
-			my $file = $self->metacpan->module($dep->{module});
-			die "Module $dep->{module} not found\n" if (!$file);
-
-			my $dist = $file->distribution;
-			my $release = $self->metacpan->release($dist);
-			die "Release $dist not found\n" if (!$file);
+			my $release = $self->release_for_module($dep->{module});
+			die "Release for $dep->{module} not found\n" if (!$release);
 
 			my $recurse = &$pre($dep, $release, $level);
 			if ($recurse) {
