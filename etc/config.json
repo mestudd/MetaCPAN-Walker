@@ -1,12 +1,141 @@
 {
+	"AnyEvent-AIO": {
+		"build": "yes"
+	},
+	"AnyEvent-BDB": {
+		"build": "yes"
+	},
+	"Async-Interrupt": {
+		"build": "yes"
+	},
+	"Authen-Simple-Passwd": {
+		"build": "no"
+	},
+	"AWS-Signature4": {
+		"build": "yes"
+	},
+	"B-C": {
+		"build": "yes"
+	},
+	"bareword-filehandles": {
+		"build": "yes"
+	},
+	"BDB": {
+		"build": "yes"
+	},
+	"Browser-Open": {
+		"build": "no"
+	},
 	"CGI-Compile": {
-		"ignore": true
+		"build": "yes"
 	},
 	"CGI-Emulate-PSGI": {
-		"ignore": true
+		"build": "yes"
+	},
+	"Class-XSAccessor": {
+		"build": "yes"
+	},
+	"Config-AutoConf": {
+		"build": "no"
+	},
+	"Cookie-Baker-XS": {
+		"build": "yes"
+	},
+	"Cpanel-JSON-XS": {
+		"build": "no"
+	},
+	"Date-Calc-XS": {
+		"build": "yes"
+	},
+	"Devel-CheckBin": {
+		"build": "no"
+	},
+	"Devel-LexAlias": {
+		"build": "yes"
+	},
+	"Event": {
+		"build": "no"
 	},
 	"FCGI": {
-		"ignore": true
+		"build": "yes"
+	},
+	"FCGI-ProcManager": {
+		"build": "no"
+	},
+	"HTML-Format": {
+		"build": "no"
+	},
+	"HTTP-GHTTP": {
+		"build": "no"
+	},
+	"HTTP-Server-Simple-PSGI": {
+		"build": "no"
+	},
+	"inc-latest": {
+		"build": "no"
+	},
+	"indirect": {
+		"build": "yes"
+	},
+	"IO-Handle-Util": {
+		"build": "no"
+	},
+	"LWP-Protocol-http10": {
+		"build": "no"
+	},
+	"Module-Refresh": {
+		"build": "yes"
+	},
+	"Module-Signature": {
+		"build": "yes"
+	},
+	"MooseX-Storage-Format-JSONpm": {
+		"build": "no"
+	},
+	"Mouse": {
+		"build": "no"
+	},
+	"multidimensional": {
+		"build": "yes"
+	},
+	"NTLM": {
+		"build": "yes"
+	},
+	"Parallel-Iterator": {
+		"build": "no"
+	},
+	"Perl-Tidy": {
+		"build": "yes"
+	},
+	"PPI-HTML": {
+		"build": "yes"
+	},
+	"strictures": {
+		"build": "yes"
+	},
+	"Test-CPAN-Meta-JSON": {
+		"build": "yes"
+	},
+	"Test-Deep-JSON": {
+		"build": "no"
+	},
+	"Test-Distribution": {
+		"build": "no"
+	},
+	"Test-Number-Delta": {
+		"build": "no"
+	},
+	"Time-TZOffset": {
+		"build": "no"
+	},
+	"Unicode-UTF8": {
+		"build": "no"
+	},
+	"XML-SAX-Writer": {
+		"build": "no"
+	},
+	"XML-XPath": {
+		"build": "yes"
 	},
 	"libwww-perl": {
 		"exclude_requires": [ "LWP::Protocol::https", "HTTP::GHTTP" ]

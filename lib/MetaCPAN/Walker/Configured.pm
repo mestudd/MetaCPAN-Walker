@@ -83,25 +83,25 @@ sub _add_relationship {
 # Track release information.
 # Returns if releas was already known.
 sub _add_release {
-	my ($self, $release, $dep) = @_;
+	my ($self, $release, $relationship) = @_;
 
 	my $distribution = $release->distribution;
 
 	if (exists($self->releases->{$distribution})) {
 		return $self->releases->{$distribution}
-			->update_required($dep->{relationship});
+			->update_required($relationship);
 	} else {
 #		use Data::Dumper; print Dumper($release->metadata);
 #		die;
 		$self->releases->{$distribution} = MetaCPAN::Walker::Release->new(
 			cpan_meta => CPAN::Meta->new($release->metadata),
 			name      => $distribution,
-			required  => $REQ_LEVEL{$dep->{relationship}},
+			required  => $REQ_LEVEL{$relationship},
 		);
 
 		# Only recurse if required
 		# TODO hook in configuration to mark 
-		return $dep->{relationship} eq 'requires';
+		return $relationship eq 'requires';
 	}
 }
 
@@ -128,9 +128,9 @@ sub build_from_initial_modules {
 			my $config = $self->_configuration->{$distribution} || {};
 
 			# Completely ignore core, development, and ignored modules
-			return 0 if (Module::CoreList::is_core($dep->{module})
+			return 0 if (Module::CoreList::is_core($dep->{module}, undef, '5.22.0')
 				|| $dep->{phase} eq 'develop')
-;#				|| !$config->{ignore};
+				|| (defined($config->{build}) && $config->{build} eq 'no');
 
 			# Keep track of conflicting releases
 			if ($dep->{relationship} eq 'conflicts') {
@@ -138,7 +138,12 @@ sub build_from_initial_modules {
 				return 0;
 			}
 
-			my $return = $self->_add_release($release, $dep);
+			# If we're building it anyway, up it to required everywhere
+			my $relationship = $dep->{relationship};
+			if (defined($config->{build}) && $config->{build} eq 'yes') {
+				$relationship = 'requires';
+			}
+			my $return = $self->_add_release($release, $relationship);
 
 			$self->_add_relationship($parent, $distribution, $dep->{relationship})
 				if (defined $parent && $parent ne 'root');
