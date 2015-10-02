@@ -11,6 +11,20 @@ use HTTP::Tiny::Mech;
 use MetaCPAN::Client;
 use WWW::Mechanize::Cached;
 
+has action => (
+	is => 'ro',
+#	coerce => &_coerce_object,
+	builder => 1,
+	handles => [ qw(begin_release end_release) ],
+);
+
+has local => (
+	is => 'ro',
+#	coerce => &_coerce_object,
+	builder => 1,
+	handles => [ qw(installed_release_version) ],
+);
+
 has metacpan => (
 	is => 'ro',
 	lazy => 1,
@@ -32,6 +46,32 @@ has _module_release => (
 	is => 'ro',
 	default => sub { {}; },
 );
+
+has policy => (
+	is => 'ro',
+#	coerce => &_coerce_object,
+	builder => 1,
+	handles => [ qw(process_dependency process_release) ],
+);
+
+sub _build_action {
+	require 'MetaCPAN::Walker::Action::PrintTree';
+	return MetaCPAN::Walker::Action::PrintTree->new();
+}
+
+sub _build_local {
+	require MetaCPAN::Walker::Local::Require;
+	return MetaCPAN::Walker::Local::Require->new();
+}
+
+sub _build_policy {
+	require 'MetaCPAN::Walker::Policy::Fixed';
+	return MetaCPAN::Walker::Policy::Fixed->new();
+}
+
+sub _coerce_object {
+	ref($_[0]) eq 'SCALAR' && $_[0] =~ /^[\w:]+$/ and require $_[0] and $_[0]->new();
+}
 
 =cut
 sub releases_for_module {
@@ -70,35 +110,56 @@ sub release_for_module {
 	return $self->_module_release->{$module};
 }
 
-sub releases_for_dependency {
+sub walk_dependencies {
 	my $self = shift;
 
-	$self->_releases_for_dependency(0, @_);
+	$self->_walk_dependencies([], undef, @_);
 }
 
-sub _releases_for_dependency {
+sub _walk_dependencies {
 	my $self = shift;
-	my $level = shift;
-	my $post = pop;
-	my $pre = pop;
+	my $path = shift;
+	my $release = shift;
 
 	# FIXME: merge dependencies into releases, so release is only shown once?
 	# would need to merge the phases and/or relationships
 	foreach my $dep (@_) {
-		eval {
-			my $release = $self->release_for_module($dep->{module});
-			die "Release for $dep->{module} not found\n" if (!$release);
-
-			my $recurse = &$pre($dep, $release, $level);
-			if ($recurse) {
-				$self->_releases_for_dependency($level + 1, @{$release->dependency}, $pre, $post);
-			}
-			&$post($dep, $release, $level);
-		};
-		if ($@) {
-			warn $@;
+		if (!$self->process_dependency($path, $release, $dep)) {
+			next;
 		}
+
+		# Retrieve release and check if we should process it
+		my $release = $self->release_for_module($dep->{module});
+		if (!$release) {
+			$self->missing_module($dep->{module});
+			next;
+		}
+		next unless ($self->process_release($path, $release));
+
+		# Check for circular dependencies
+		if (grep $_ eq $release->name, @$path) {
+			$self->circular_dependency($path, $release);
+			next;
+		}
+
+		# Process release and its dependencies
+		push @$path, $release->name;
+		$self->begin_release($path, $release);
+		$self->_walk_dependencies($path, @{$release->dependency});
+		$self->end_release($path, $release);
+		pop @$path;
 	}
+}
+
+sub walk_from_modules {
+	my $self = shift;
+
+	my @dependencies = map +{
+		    module => $_,
+			phase  => 'runtime',
+			relationship => 'requires',
+		}, @_;
+	$self->walk_dependencies(@dependencies);
 }
 
 1;

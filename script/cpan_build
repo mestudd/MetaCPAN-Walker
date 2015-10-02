@@ -1,0 +1,15 @@
+#!/usr/bin/perl 
+use strict;
+use warnings;
+use v5.10.0;
+
+use MetaCPAN::Walker;
+use MetaCPAN::Walker::Action::PrintOrder;
+use MetaCPAN::Walker::Policy::Fixed;
+
+my $walker = MetaCPAN::Walker->new(
+	action => MetaCPAN::Walker::Action::PrintOrder->new(),
+	policy => MetaCPAN::Walker::Policy::Fixed->new_with_options(),
+);
+
+$walker->walk_from_modules(@ARGV);
