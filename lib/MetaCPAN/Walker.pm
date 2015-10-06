@@ -1,15 +1,16 @@
 package MetaCPAN::Walker;
 
 use strict;
-use 5.008_005;
-use Moo;
-use namespace::clean;
-our $VERSION = '0.01';
-
+use 5.10.0;
 use CHI;
 use HTTP::Tiny::Mech;
 use MetaCPAN::Client;
 use WWW::Mechanize::Cached;
+
+use Moo;
+use namespace::clean;
+our $VERSION = '0.01';
+
 
 has action => (
 	is => 'ro',
@@ -54,6 +55,11 @@ has policy => (
 	handles => [ qw(process_dependency process_release) ],
 );
 
+has releases => (
+	is => 'ro',
+	default => sub { {}; },
+);
+
 sub _build_action {
 	require 'MetaCPAN::Walker::Action::PrintTree';
 	return MetaCPAN::Walker::Action::PrintTree->new();
@@ -73,39 +79,35 @@ sub _coerce_object {
 	ref($_[0]) eq 'SCALAR' && $_[0] =~ /^[\w:]+$/ and require $_[0] and $_[0]->new();
 }
 
-=cut
-sub releases_for_module {
-	my $self = shift;
-	my $post = pop;
-	my $pre = pop;
+# get release with metacpan client, create walker release object, populate
+# _module_release with provides
+sub _release_for_distribution {
+	my ($self, $name) = @_;
 
-	foreach my $m (@_) {
-#		my $module = $self->metacpan->release($m);# , undef, { join => 'release'} );
-		my $file = $self->metacpan->module($m);
-		die "Module $_ not found\n" if (!$file);
+	if (!exists $self->releases->{$name}) {
+		my $release = $self->metacpan->release($name);
+		return undef unless ($release);
 
-		my $release = $self->metacpan->release($file->distribution);
-		die "Release $_ not found\n" if (!$file);
+		$self->releases->{$name} = $release;
 
-		my $recurse = &$callback($m, $release);
-		if ($recurse) {
-			foreach my $d (@{$release->dependency}) {
-#				use Data::Dumper; warn Dumper($d);
-				$self->releases_for_module($d->{module});
-			}
-		}
+		map $self->_module_release->{$_} = $release, @{$release->provides};
 	}
+	return $self->releases->{$name};
 }
-=cut
 
 sub release_for_module {
 	my ($self, $module) = @_;
 
 	if (!exists $self->_module_release->{$module}) {
 		my $file = $self->metacpan->module($module);
+		return undef unless ($file);
 
-		$self->_module_release->{$module} = $self->metacpan->release($file->distribution)
-			if ($file);
+		my $release = $self->_release_for_distribution($file->distribution);
+
+		# FIXME: is this needed, or should assume _release_for_distribution
+		# does it?
+		$self->_module_release->{$module} = $release
+			if ($release);
 	}
 	return $self->_module_release->{$module};
 }
@@ -144,6 +146,7 @@ sub _walk_dependencies {
 
 		# Process release and its dependencies
 		push @$path, $release->name;
+		# FIXME: update required? remove required altogether?
 		$self->begin_release($path, $release);
 		$self->_walk_dependencies($path, @{$release->dependency});
 		$self->end_release($path, $release);
