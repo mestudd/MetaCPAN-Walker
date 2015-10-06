@@ -107,7 +107,7 @@ ok !$policy->process_dependency(
 	[], $release, dep(qw(Module::CoreList runtime requires))
 ), 'policy:fixed core module not processed by default';
 my $core = MetaCPAN::Walker::Policy::Fixed->new(core => 1);
-ok !$core->process_dependency(
+ok $core->process_dependency(
 	[], $release, dep(qw(Module::CoreList runtime requires))
 ), 'policy:fixed core module processed with option';
 
