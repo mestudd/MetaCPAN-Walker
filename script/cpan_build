@@ -5,10 +5,12 @@ use v5.10.0;
 
 use MetaCPAN::Walker;
 use MetaCPAN::Walker::Action::PrintOrder;
+use MetaCPAN::Walker::Local::Nop;
 use MetaCPAN::Walker::Policy::Fixed;
 
 my $walker = MetaCPAN::Walker->new(
 	action => MetaCPAN::Walker::Action::PrintOrder->new(),
+	local  => MetaCPAN::Walker::Local::Nop->new(),
 	policy => MetaCPAN::Walker::Policy::Fixed->new_with_options(),
 );
 
