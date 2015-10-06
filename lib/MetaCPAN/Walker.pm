@@ -123,8 +123,6 @@ sub _walk_dependencies {
 	my $path = shift;
 	my $release = shift;
 
-	# FIXME: merge dependencies into releases, so release is only shown once?
-	# would need to merge the phases and/or relationships
 	foreach my $dep (@_) {
 		if (!$self->process_dependency($path, $release, $dep)) {
 			next;
@@ -146,7 +144,6 @@ sub _walk_dependencies {
 
 		# Process release and its dependencies
 		push @$path, $release->name;
-		# FIXME: update required? remove required altogether?
 		$self->begin_release($path, $release);
 		$self->_walk_dependencies($path, @{$release->dependency});
 		$self->end_release($path, $release);
