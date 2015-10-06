@@ -53,6 +53,19 @@ local $ENV{PATH} = '';
 is $local->installed_release_version($release1),
 	'', 'local:require does not find non-existent release';
 like $local->installed_release_version($release2),
-	qr/^\d+\.\d+/, 'local:require does not find non-existent release';
+	qr/^\d+\.\d+/, 'local:require does find real release';
+
+
+# don't even try to check for local version
+require_ok 'MetaCPAN::Walker::Local::Nop';
+isa_ok $local = MetaCPAN::Walker::Local::Nop->new(),
+	'MetaCPAN::Walker::Local::Nop', 'local:nop is local:fixed';
+ok Role::Tiny::does_role($local, 'MetaCPAN::Walker::Local'),
+	'local:nop does MetaCPAN::Walker::Local';
+
+is $local->installed_release_version($release1),
+	'', 'local:nop does not find non-existent release';
+is $local->installed_release_version($release2),
+	'', 'local:require does not find real release';
 
 done_testing;
