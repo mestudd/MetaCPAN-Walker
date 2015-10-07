@@ -2,60 +2,47 @@ package MetaCPAN::Walker::Release;
 
 use strict;
 use warnings;
+
+use version;
  
 use Moo;
 use namespace::clean;
 our $VERSION = '0.01';
 
-my %REQ_LEVEL = (
-	requires => 0,
-	recommends => 1,
-	suggests => 2,
-);
-
-has cpan_meta => ( is => 'ro', required => 1 );
+has release => ( is => 'ro', required => 1 );
 
 has name => ( is => 'ro', required => 1 );
 
-has required => ( is => 'rw', required => 1 );
+has version_latest => ( is => 'rw' );
 
-has _requires => ( is => 'ro', default => sub { {}; } );
+has version_local => ( is => 'rw' );
 
-has _wanted_by => ( is => 'ro', default => sub { {}; } );
+has version_required => ( is => 'rw' );
 
-sub add_requires {
-	my ($self, $release, $level) = @_;
-
-	$self->_requires->{$release} = $level;
-}
-
-sub add_wanted_by {
-	my ($self, $release, $level) = @_;
-
-	$self->_wanted_by->{$release} = $level;
-}
-
-sub requires {
+sub update_available {
 	my $self = shift;
 
-	return sort keys %{$self->_requires};
+	return $self->version_local
+		&& $self->version_latest > $self->version_local;
 }
 
 sub update_required {
-	my ($self, $level) = @_;
-
-	if ($REQ_LEVEL{$level} < $self->required) {
-		$self->required($REQ_LEVEL{$level});
-		return $level eq 'requires';
-	}
-
-	return 0;
-}
-
-sub wanted_by {
 	my $self = shift;
 
-	return sort keys %{$self->_wanted_by};
+	return $self->version_local
+		&& $self->version_required > $self->version_local;
+}
+
+# keep the maximum of the minimum versions required
+sub update_version_required {
+	my ($self, $version) = @_;
+
+	my $new = version->parse($version);
+	if ($new > $self->version_required) {
+		$self->version_required($new);
+	}
+
+	return $self->version_required;
 }
 
 1;

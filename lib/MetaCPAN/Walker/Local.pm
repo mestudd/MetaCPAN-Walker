@@ -7,6 +7,6 @@ use strictures 2;
 our $VERSION = '0.01';
 
 # returns the installed version number for a release
-requires qw(installed_release_version);
+requires qw(local_version);
 
 1;

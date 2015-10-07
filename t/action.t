@@ -9,12 +9,12 @@ use Role::Tiny;
 my $release1 = MetaCPAN::Walker::Release->new(
 	name      => 'Release-Name',
 	required  => 0,
-	cpan_meta => undef,
+	release   => undef,
 );
 my $release2 = MetaCPAN::Walker::Release->new(
 	name      => 'Release-Two',
 	required  => 2,
-	cpan_meta => undef,
+	release   => undef,
 );
 
 # Print build order

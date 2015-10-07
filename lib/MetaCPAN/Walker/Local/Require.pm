@@ -36,16 +36,17 @@ sub _build_perl {
 	return $this_perl;
 }
 
-sub installed_release_version {
+sub local_version {
 	my ($self, $release) = @_;
 
 	if (!exists $self->versions->{$release->name}) {
 		my $version = undef;
 		# Heuristic: take first set version from provided modules.
-		foreach my $module (sort keys %{$release->cpan_meta->provides}) {
+		foreach my $module (sort keys %{$release->release->provides}) {
 			my $use_perl = $self->perl;
 			last if ($version = `$use_perl -le '$VERSION_CHECK' $module`);
 		}
+		$version = 'v0' unless (defined $version && $version ne '');
 		$self->versions->{$release->name} = $version;
 	}
 

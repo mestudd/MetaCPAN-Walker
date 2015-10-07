@@ -5,6 +5,7 @@ use 5.10.0;
 use CHI;
 use HTTP::Tiny::Mech;
 use MetaCPAN::Client;
+use MetaCPAN::Walker::Release;
 use WWW::Mechanize::Cached;
 
 use Moo;
@@ -23,7 +24,7 @@ has local => (
 	is => 'ro',
 #	coerce => &_coerce_object,
 	builder => 1,
-	handles => [ qw(installed_release_version) ],
+	handles => [ qw(local_version) ],
 );
 
 has metacpan => (
@@ -85,12 +86,18 @@ sub _release_for_distribution {
 	my ($self, $name) = @_;
 
 	if (!exists $self->releases->{$name}) {
-		my $release = $self->metacpan->release($name);
-		return undef unless ($release);
+		my $r = $self->metacpan->release($name);
+		return undef unless ($r);
 
-		$self->releases->{$name} = $release;
+		my $release = $self->releases->{$name} = MetaCPAN::Walker::Release->new(
+			release => $r,
+			name    => $name,
+			version_latest => version->parse($r->version),
+			version_local  => version->parse($self->local_version($r)),
+			version_required => version->parse('v0.0.0'),
+		);
 
-		map $self->_module_release->{$_} = $release, @{$release->provides};
+		map $self->_module_release->{$_} = $release, @{$r->provides};
 	}
 	return $self->releases->{$name};
 }
@@ -145,7 +152,7 @@ sub _walk_dependencies {
 		# Process release and its dependencies
 		push @$path, $release->name;
 		$self->begin_release($path, $release);
-		$self->_walk_dependencies($path, @{$release->dependency});
+		$self->_walk_dependencies($path, @{$release->release->dependency});
 		$self->end_release($path, $release);
 		pop @$path;
 	}

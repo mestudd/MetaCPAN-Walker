@@ -1,32 +1,14 @@
 #!perl -T
 use strict;
 use Test::More;
-use CPAN::Meta;
 use MetaCPAN::Walker::Release;
 use Role::Tiny;
 
 
-my %dist = (
-	abstract       => 'abstract',
-	author         => ['author'],
-	dynamic_config => 0,
-	generated_by   => 'nothing',
-	license        => ['perl_5'],
-	'meta-spec'    => { version => 2 },
-	release_status => 'stable',
-	version        => '0.0.1',
-);
-
 my $release = MetaCPAN::Walker::Release->new(
 	name      => 'Release-Name',
 	required  => 0,
-	cpan_meta => CPAN::Meta->new({
-		%dist,
-		name => 'Release-Name',
-		provides => {
-			'Release::Name' => { file => 'lib/Release/Name.pm' },
-		},
-	}),
+	release   => undef,
 );
 
 sub dep {

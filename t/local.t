@@ -1,44 +1,29 @@
 #!perl -T
 use strict;
 use Test::More;
-use CPAN::Meta;
+use MetaCPAN::Client::Release;
 use MetaCPAN::Walker::Release;
 use Role::Tiny;
 
 
-my %dist = (
-	abstract       => 'abstract',
-	author         => ['author'],
-	dynamic_config => 0,
-	generated_by   => 'nothing',
-	license        => ['perl_5'],
-	'meta-spec'    => { version => 2 },
-	release_status => 'stable',
-	version        => '0.0.1',
-);
-
 my $release1 = MetaCPAN::Walker::Release->new(
 	name      => 'Release-Name',
 	required  => 0,
-	cpan_meta => CPAN::Meta->new({
-		%dist,
-		name => 'Release-Name',
+	release   => MetaCPAN::Client::Release->new({ data => {
 		provides => {
 			'Release::Name' => { file => 'lib/Release/Name.pm' },
 		},
-	}),
+	}}),
 );
 my $release2 = MetaCPAN::Walker::Release->new(
 	name      => 'Role-Tiny',
 	required  => 2,
-	cpan_meta => CPAN::Meta->new({
-		%dist,
-		name => 'Role::Tiny',
+	release   => MetaCPAN::Client::Release->new({ data => {
 		provides => {
 			'Role::Tiny' => { file => 'lib/Role/Tiny.pm' },
 			'Role::Tiny::With' => { file => 'lib/Role/Tiny/With.pm' },
 		},
-	}),
+	}}),
 );
 
 # use "require $module" as heuristic
@@ -48,11 +33,10 @@ isa_ok my $local = MetaCPAN::Walker::Local::Require->new(),
 ok Role::Tiny::does_role($local, 'MetaCPAN::Walker::Local'),
 	'local:fixed does MetaCPAN::Walker::Local';
 
-# FIXME: probably need a better way
 local $ENV{PATH} = '';
-is $local->installed_release_version($release1),
-	'', 'local:require does not find non-existent release';
-like $local->installed_release_version($release2),
+is $local->local_version($release1),
+	'v0', 'local:require does not find non-existent release';
+like $local->local_version($release2),
 	qr/^\d+\.\d+/, 'local:require does find real release';
 
 
@@ -63,9 +47,9 @@ isa_ok $local = MetaCPAN::Walker::Local::Nop->new(),
 ok Role::Tiny::does_role($local, 'MetaCPAN::Walker::Local'),
 	'local:nop does MetaCPAN::Walker::Local';
 
-is $local->installed_release_version($release1),
-	'', 'local:nop does not find non-existent release';
-is $local->installed_release_version($release2),
-	'', 'local:require does not find real release';
+is $local->local_version($release1),
+	'v0', 'local:nop does not find non-existent release';
+is $local->local_version($release2),
+	'v0', 'local:require does not find real release';
 
 done_testing;

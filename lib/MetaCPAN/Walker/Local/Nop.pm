@@ -9,8 +9,8 @@ our $VERSION = '0.01';
 
 with qw(MetaCPAN::Walker::Local);
 
-sub installed_release_version {
-	return '';
+sub local_version {
+	return 'v0';
 }
 
 1;
