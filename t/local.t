@@ -1,29 +1,40 @@
 #!perl -T
 use strict;
 use Test::More;
-use MetaCPAN::Client::Release;
+use CPAN::Meta;
 use MetaCPAN::Walker::Release;
 use Role::Tiny;
 
 
+my %dist = (
+	abstract       => 'Abstract',
+	author         => ['me'],
+	dynamic_config => 0,
+	generated_by   => 'hand',
+	license        => ['perl_5'],
+	'meta-spec'    => { version => 2 },
+	release_status => 'stable',
+	version        => 'v0.0.1',
+);
+
 my $release1 = MetaCPAN::Walker::Release->new(
-	name      => 'Release-Name',
-	required  => 0,
-	release   => MetaCPAN::Client::Release->new({ data => {
+	cpan_meta => CPAN::Meta->new({
+		%dist,
+		name      => 'Release-Name',
 		provides => {
 			'Release::Name' => { file => 'lib/Release/Name.pm' },
 		},
-	}}),
+	}),
 );
 my $release2 = MetaCPAN::Walker::Release->new(
-	name      => 'Role-Tiny',
-	required  => 2,
-	release   => MetaCPAN::Client::Release->new({ data => {
+	cpan_meta => CPAN::Meta->new({
+		%dist,
+		name      => 'Role-Tiny',
 		provides => {
 			'Role::Tiny' => { file => 'lib/Role/Tiny.pm' },
 			'Role::Tiny::With' => { file => 'lib/Role/Tiny/With.pm' },
 		},
-	}}),
+	}),
 );
 
 # use "require $module" as heuristic

@@ -7,6 +7,6 @@ use strictures 2;
 our $VERSION = '0.01';
 
 # return true value to indicate release/dependency should be processed
-requires qw(process_dependency process_release);
+requires qw(process_release);
 
 1;

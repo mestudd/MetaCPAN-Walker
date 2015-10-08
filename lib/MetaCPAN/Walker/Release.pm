@@ -3,21 +3,46 @@ package MetaCPAN::Walker::Release;
 use strict;
 use warnings;
 
+use CPAN::Meta;
 use version;
  
 use Moo;
 use namespace::clean;
 our $VERSION = '0.01';
 
-has release => ( is => 'ro', required => 1 );
+# CPAN::Meta object
+has cpan_meta => (
+	is      => 'ro',
+	required => 1,
+	handles => [qw(name version abstract description licenses
+		effective_prereqs features feature 
+		provides resources)],
+);
 
-has name => ( is => 'ro', required => 1 );
+has requirements => (
+	is      => 'rw',
+	lazy    => 1,
+	builder => '_build_requirements',
+	handles => ['required_modules'],
+);
 
 has version_latest => ( is => 'rw' );
 
 has version_local => ( is => 'rw' );
 
 has version_required => ( is => 'rw' );
+
+sub _build_cpan_meta {
+	my $self = shift;
+
+	return CPAN::Meta->new($self->release->metadata);
+}
+
+sub _build_requirements {
+	my $self = shift;
+
+	return CPAN::Meta::Requirements->new();
+}
 
 sub update_available {
 	my $self = shift;

@@ -7,27 +7,47 @@ use Role::Tiny;
 use version;
 
 
+my %dist = (
+	abstract       => 'Abstract',
+	author         => ['me'],
+	dynamic_config => 0,
+	generated_by   => 'hand',
+	license        => ['perl_5'],
+	'meta-spec'    => { version => 2 },
+	release_status => 'stable',
+	version        => 'v0.0.1',
+);
+
+my $release1 = MetaCPAN::Walker::Release->new(
+	cpan_meta => CPAN::Meta->new({
+		%dist,
+		name      => 'Release-Name',
+	}),
+);
 my $at_latest = MetaCPAN::Walker::Release->new(
-	name      => 'Release-Name',
-	required  => 0,
-	release   => undef,
+	cpan_meta => CPAN::Meta->new({
+		%dist,
+		name      => 'Release-Name',
+	}),
 	version_latest   => version->parse('v1.10'),
 	version_local    => version->parse('v1.10'),
 	version_required => version->parse('v1.3'),
 );
 
 my $update_available = MetaCPAN::Walker::Release->new(
-	name      => 'Release-Name',
-	required  => 0,
-	release   => undef,
+	cpan_meta => CPAN::Meta->new({
+		%dist,
+		name      => 'Release-Name',
+	}),
 	version_latest => version->parse('v1.10'),
 	version_local  => version->parse('v1.2'),
 );
 
 my $update_required = MetaCPAN::Walker::Release->new(
-	name      => 'Release-Name',
-	required  => 0,
-	release   => undef,
+	cpan_meta => CPAN::Meta->new({
+		%dist,
+		name      => 'Release-Name',
+	}),
 	version_latest   => version->parse('v1.10'),
 	version_local    => version->parse('v1.2'),
 	version_required => version->parse('v1.3'),

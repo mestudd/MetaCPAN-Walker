@@ -41,12 +41,22 @@ sub local_version {
 
 	if (!exists $self->versions->{$release->name}) {
 		my $version = undef;
+		my $use_perl = $self->perl;
+
 		# Heuristic: take first set version from provided modules.
-		foreach my $module (sort keys %{$release->release->provides}) {
-			my $use_perl = $self->perl;
+		my @provides;
+
+		# Spec says provides is a map, but real data can be array?
+		if (ref($release->provides) eq 'HASH') {
+			@provides = sort keys %{$release->provides};
+		} elsif (ref($release->provides) eq 'ARRAY') {
+			@provides = @{$release->provides};
+		}
+		foreach my $module (@provides) {
 			last if ($version = `$use_perl -le '$VERSION_CHECK' $module`);
 		}
 		$version = 'v0' unless (defined $version && $version ne '');
+		chomp $version;
 		$self->versions->{$release->name} = $version;
 	}
 

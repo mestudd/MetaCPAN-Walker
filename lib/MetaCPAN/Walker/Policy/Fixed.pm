@@ -27,9 +27,10 @@ option recommends => (is => 'ro', default => 0, negativable => 1);
 option suggests   => (is => 'ro', default => 0, negativable => 1);
 option conflicts  => (is => 'ro', default => 0, negativable => 1);
 
-# Configure whether to follow already seen releases
-option core  => (is => 'ro', default => 0, negativable => 1);
-option seen  => (is => 'ro', default => 0, negativable => 1);
+# Configure other dependencies to follow
+option core     => (is => 'ro', default => 0, negativable => 1);
+option features => (is => 'ro', default => 0, negativable => 1);
+option seen     => (is => 'ro', default => 0, negativable => 1);
 
 # Configure the version of perl targetted
 option perl => (is => 'ro', format=> 's', default => '5.22.0');
@@ -41,28 +42,45 @@ has _seen => (
 );
 
 
-sub process_dependency {
-	my ($self, $path, $release, $dependency) = @_;
-
-	unless ($self->core) {
-		return 0 if (Module::CoreList::is_core(
-				$dependency->{module},
-				undef,
-				$self->perl,
-		));
-	}
-
-	my $phase = $dependency->{phase};
-	my $relationship = $dependency->{relationship};
-
-	return $self->$phase && $self->$relationship;
-}
-
 sub process_release {
 	my ($self, $path, $release) = @_;
 
+	return 0 if ($release->name eq 'perl');
+
 	my $seen = $self->_seen->{$release->name};
 	$self->_seen->{$release->name} = 1;
+
+	if (!$seen) {
+		my @features;
+		push @features, map $_->identifier, $release->features
+			if ($self->features);
+		my $prereqs = $release->effective_prereqs(\@features);
+
+		my @phases;
+		push @phases, 'configure' if ($self->configure);
+		push @phases, 'build' if ($self->build);
+		push @phases, 'test' if ($self->test);
+		push @phases, 'runtime' if ($self->runtime);
+		push @phases, 'develop' if ($self->develop);
+
+		my @relationships;
+		push @relationships, 'requires' if ($self->requires);
+		push @relationships, 'recommends' if ($self->recommends);
+		push @relationships, 'suggests' if ($self->suggests);
+		push @relationships, 'conflicts' if ($self->conflicts);
+
+		my $reqs = $prereqs->merged_requirements(\@phases, \@relationships);
+		$reqs->clear_requirement('perl');
+		unless ($self->core) {
+			foreach my $module ($reqs->required_modules) {
+				if (Module::CoreList::is_core($module, undef, $self->perl)) {
+					$reqs->clear_requirement($module);
+				}
+			}
+		}
+
+		$release->requirements($reqs);
+	}
 
 	return $self->seen || !$seen;
 }

@@ -3,6 +3,7 @@ package MetaCPAN::Walker;
 use strict;
 use 5.10.0;
 use CHI;
+use CPAN::Meta;
 use HTTP::Tiny::Mech;
 use MetaCPAN::Client;
 use MetaCPAN::Walker::Release;
@@ -17,7 +18,7 @@ has action => (
 	is => 'ro',
 #	coerce => &_coerce_object,
 	builder => 1,
-	handles => [ qw(begin_release end_release) ],
+	handles => [ qw(begin_release end_release missing_module circular_dependency) ],
 );
 
 has local => (
@@ -90,14 +91,14 @@ sub _release_for_distribution {
 		return undef unless ($r);
 
 		my $release = $self->releases->{$name} = MetaCPAN::Walker::Release->new(
-			release => $r,
-			name    => $name,
-			version_latest => version->parse($r->version),
-			version_local  => version->parse($self->local_version($r)),
+			cpan_meta        => CPAN::Meta->new($r->metadata),
+			name             => $name,
+			version_latest   => version->parse($r->version),
+			version_local    => version->parse($self->local_version($r)),
 			version_required => version->parse('v0.0.0'),
 		);
 
-		map $self->_module_release->{$_} = $release, @{$r->provides};
+		map $self->_module_release->{$_} = $release, @{ $r->provides // [] };
 	}
 	return $self->releases->{$name};
 }
@@ -119,26 +120,16 @@ sub release_for_module {
 	return $self->_module_release->{$module};
 }
 
-sub walk_dependencies {
-	my $self = shift;
-
-	$self->_walk_dependencies([], undef, @_);
-}
-
-sub _walk_dependencies {
+sub _walk_modules {
 	my $self = shift;
 	my $path = shift;
-	my $release = shift;
+	my @dependencies = @_;
 
-	foreach my $dep (@_) {
-		if (!$self->process_dependency($path, $release, $dep)) {
-			next;
-		}
-
+	foreach my $dep (@dependencies) {
 		# Retrieve release and check if we should process it
-		my $release = $self->release_for_module($dep->{module});
+		my $release = $self->release_for_module($dep);
 		if (!$release) {
-			$self->missing_module($dep->{module});
+			$self->missing_module($dep);
 			next;
 		}
 		next unless ($self->process_release($path, $release));
@@ -152,7 +143,8 @@ sub _walk_dependencies {
 		# Process release and its dependencies
 		push @$path, $release->name;
 		$self->begin_release($path, $release);
-		$self->_walk_dependencies($path, @{$release->release->dependency});
+		$self->_walk_modules($path, sort $release->required_modules);
+# TODO: can update minimum version here?
 		$self->end_release($path, $release);
 		pop @$path;
 	}
@@ -160,13 +152,9 @@ sub _walk_dependencies {
 
 sub walk_from_modules {
 	my $self = shift;
+	my @dependencies = @_;
 
-	my @dependencies = map +{
-		    module => $_,
-			phase  => 'runtime',
-			relationship => 'requires',
-		}, @_;
-	$self->walk_dependencies(@dependencies);
+	$self->_walk_modules([], @dependencies);
 }
 
 1;
