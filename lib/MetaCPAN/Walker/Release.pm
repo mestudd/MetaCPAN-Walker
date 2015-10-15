@@ -19,6 +19,8 @@ has cpan_meta => (
 		provides resources)],
 );
 
+has download_url => ( is => 'rw' );
+
 has requirements => (
 	is      => 'rw',
 	lazy    => 1,

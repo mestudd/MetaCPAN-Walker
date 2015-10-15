@@ -92,7 +92,7 @@ sub _release_for_distribution {
 
 		my $release = $self->releases->{$name} = MetaCPAN::Walker::Release->new(
 			cpan_meta        => CPAN::Meta->new($r->metadata),
-			name             => $name,
+			download_url     => $r->download_url,
 			version_latest   => version->parse($r->version),
 			version_local    => version->parse($self->local_version($r)),
 			version_required => version->parse('v0.0.0'),
@@ -107,15 +107,24 @@ sub release_for_module {
 	my ($self, $module) = @_;
 
 	if (!exists $self->_module_release->{$module}) {
-		my $file = $self->metacpan->module($module);
-		return undef unless ($file);
+		eval {
+			my $file = $self->metacpan->module($module);
+			return undef unless ($file);
 
-		my $release = $self->_release_for_distribution($file->distribution);
+			my $name = $file->distribution;
+			if ($name =~ s/::/-/g) { # namespace-clean 0.26; others?
+				warn $name, ' has package instead of release name';
+			}
+			my $release = $self->_release_for_distribution($file->distribution);
 
-		# FIXME: is this needed, or should assume _release_for_distribution
-		# does it?
-		$self->_module_release->{$module} = $release
-			if ($release);
+			# FIXME: is this needed, or should assume _release_for_distribution
+			# does it?
+			$self->_module_release->{$module} = $release
+				if ($release);
+		};
+		if ($@) {
+			warn $@;
+		}
 	}
 	return $self->_module_release->{$module};
 }
