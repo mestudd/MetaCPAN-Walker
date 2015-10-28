@@ -28,3 +28,41 @@ sub missing_module {
 sub circular_dependency {}
 
 1;
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+MetaCPAN::Walker::Action::PrintTree - Print release dependency tree
+
+=head1 SYNOPSIS
+
+  use MetaCPAN::Walker;
+  use MetaCPAN::Walker::Action::PrintTree;
+  
+  my $walker = MetaCPAN::Walker->new(
+      action => MetaCPAN::Walker::Action::PrintTree->new(),
+  );
+  
+  $walker->walk_from_modules(qw(namespace::clean Test::Most));
+
+=head1 DESCRIPTION
+
+MetaCPAN::Walker::Action::PrintTree prints the release name in the
+C<begin_release> method, indented by the path length.
+
+=head1 AUTHOR
+
+Malcolm Studd E<lt>mestudd@gmail.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2015- Recognia Inc.
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

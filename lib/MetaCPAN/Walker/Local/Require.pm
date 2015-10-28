@@ -64,3 +64,41 @@ sub local_version {
 }
 
 1;
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+MetaCPAN::Walker::Local::Require - Check local release via local perl
+
+=head1 SYNOPSIS
+
+  use MetaCPAN::Walker;
+  use MetaCPAN::Walker::Local::Nop;
+  
+  my $walker = MetaCPAN::Walker->new(
+      local => MetaCPAN::Walker::Local::Nop->new(),
+  );
+  
+  $walker->walk_from_modules(qw(namespace::clean Test::Most));
+
+=head1 DESCRIPTION
+
+MetaCPAN::Walker::Local::Nop implements the local role with looking at the
+local perl install.
+
+=head1 AUTHOR
+
+Malcolm Studd E<lt>mestudd@gmail.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright 2015- Recognia Inc.
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

@@ -18,14 +18,14 @@ has action => (
 	is => 'ro',
 #	coerce => &_coerce_object,
 	builder => 1,
-	handles => [ qw(begin_release end_release missing_module circular_dependency) ],
+	handles => 'MetaCPAN::Walker::Action',
 );
 
 has local => (
 	is => 'ro',
 #	coerce => &_coerce_object,
 	builder => 1,
-	handles => [ qw(local_version) ],
+	handles => 'MetaCPAN::Walker::Local',
 );
 
 has metacpan => (
@@ -54,7 +54,7 @@ has policy => (
 	is => 'ro',
 #	coerce => &_coerce_object,
 	builder => 1,
-	handles => [ qw(process_dependency process_release) ],
+	handles => 'MetaCPAN::Walker::Policy',
 );
 
 has releases => (
@@ -178,10 +178,55 @@ MetaCPAN::Walker - Walk release dependencies using MetaCPAN
 =head1 SYNOPSIS
 
   use MetaCPAN::Walker;
+  use MetaCPAN::Walker::Action::PrintOrder;
+  use MetaCPAN::Walker::Local::Nop;
+  use MetaCPAN::Walker::Policy::Fixed;
+  
+  my $walker = MetaCPAN::Walker->new(
+      action => MetaCPAN::Walker::Action::PrintOrder->new(),
+      local  => MetaCPAN::Walker::Local::Nop->new(),
+      policy => MetaCPAN::Walker::Policy::Fixed->new_with_options(),
+  );
+  
+  $walker->release_for_module('Test::Most');
+  $walker->walk_from_modules(qw(namespace::clean Test::Most));
 
 =head1 DESCRIPTION
 
 MetaCPAN::Walker provides easy ways to walk sets of CPAN releases.
+
+=head1 Attributes
+
+=head2 action
+
+Implementation of L<MetaCPAN::Walker::Action> role defining actions to take
+for releases and errors.
+
+=head2 local
+
+Implementation of L<MetaCPAN::Walker::Local> role to retrieve the locally
+installed release version.
+
+=head2 metacpan
+
+L<MetaCPAN::Client> object for accessing L<MetaCPAN|https://metacpan.org/>.
+The default value provides caching.
+
+=head2 policy
+
+Implementation of L<MetaCPAN::Walker::Policy> role defining which releases
+and dependencies to walk.
+
+=head1 Methods
+
+=head2 release_for_module($name)
+
+Get the L<MetaCPAN::Walker::Release> object that provides the given module.
+
+=head2 release_for_module(@names)
+
+Walk the dependency trees for all given module names, using the policy for
+which parts of the tree to walk, and execute actions.
 
 =head1 AUTHOR
 
@@ -195,7 +240,5 @@ Copyright 2015- Recognia Inc.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
-
-=head1 SEE ALSO
 
 =cut
