@@ -63,7 +63,7 @@ has releases => (
 );
 
 sub _build_action {
-	require 'MetaCPAN::Walker::Action::PrintTree';
+	require MetaCPAN::Walker::Action::PrintTree;
 	return MetaCPAN::Walker::Action::PrintTree->new();
 }
 
@@ -73,7 +73,7 @@ sub _build_local {
 }
 
 sub _build_policy {
-	require 'MetaCPAN::Walker::Policy::Fixed';
+	require MetaCPAN::Walker::Policy::Fixed;
 	return MetaCPAN::Walker::Policy::Fixed->new();
 }
 
