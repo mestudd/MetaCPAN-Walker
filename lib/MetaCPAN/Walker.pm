@@ -223,7 +223,7 @@ and dependencies to walk.
 
 Get the L<MetaCPAN::Walker::Release> object that provides the given module.
 
-=head2 release_for_module(@names)
+=head2 walk_from_modules(@names)
 
 Walk the dependency trees for all given module names, using the policy for
 which parts of the tree to walk, and execute actions.
