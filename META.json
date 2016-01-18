@@ -4,13 +4,13 @@
       "Malcolm Studd <mestudd@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.039, Dist::Milla version v1.0.15, CPAN::Meta::Converter version 2.150005",
+   "generated_by" : "Dist::Zilla version 5.039, Dist::Milla version v1.0.15, CPAN::Meta::Converter version 2.150001",
    "license" : [
       "perl_5"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
-      "version" : "2"
+      "version" : 2
    },
    "name" : "MetaCPAN-Walker",
    "no_index" : {
@@ -37,16 +37,46 @@
       },
       "runtime" : {
          "requires" : {
-            "perl" : "5.008005"
+            "CHI" : "0",
+            "CPAN::Meta" : "0",
+            "Config" : "0",
+            "HTTP::Tiny::Mech" : "0",
+            "MetaCPAN::Client" : "0",
+            "Module::CoreList" : "0",
+            "Moo" : "0",
+            "Moo::Role" : "0",
+            "MooX::Options" : "0",
+            "WWW::Mechanize::Cached" : "0",
+            "namespace::clean" : "0",
+            "perl" : "v5.10.0",
+            "strictures" : "2",
+            "version" : "0"
          }
       },
       "test" : {
          "requires" : {
-            "Test::More" : "0.96"
+            "CPAN::Meta" : "0",
+            "Role::Tiny" : "0",
+            "Test::More" : "0.96",
+            "Test::Output" : "0"
          }
       }
    },
    "release_status" : "stable",
-   "version" : "0.01"
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/mestudd/MetaCPAN-Walker/issues"
+      },
+      "homepage" : "https://github.com/mestudd/MetaCPAN-Walker",
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/mestudd/MetaCPAN-Walker.git",
+         "web" : "https://github.com/mestudd/MetaCPAN-Walker"
+      }
+   },
+   "version" : "0.0.1",
+   "x_contributors" : [
+      "Malcolm Studd <mstudd@recognia.com>"
+   ]
 }
 

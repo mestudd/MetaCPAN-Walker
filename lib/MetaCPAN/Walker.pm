@@ -11,7 +11,7 @@ use WWW::Mechanize::Cached;
 
 use Moo;
 use namespace::clean;
-our $VERSION = '0.01';
+our $VERSION = '0.0.1';
 
 
 has action => (

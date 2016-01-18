@@ -7,7 +7,7 @@ use Moo;
 use strictures 2;
 use namespace::clean;
 
-our $VERSION = '0.01';
+our $VERSION = '0.0.1';
 
 my $VERSION_CHECK = 'eval "require $ARGV[0]" and print $ARGV[0]->VERSION';
 
@@ -75,17 +75,17 @@ MetaCPAN::Walker::Local::Require - Check local release via local perl
 =head1 SYNOPSIS
 
   use MetaCPAN::Walker;
-  use MetaCPAN::Walker::Local::Nop;
+  use MetaCPAN::Walker::Local::Require;
   
   my $walker = MetaCPAN::Walker->new(
-      local => MetaCPAN::Walker::Local::Nop->new(),
+      local => MetaCPAN::Walker::Local::Require->new(),
   );
   
   $walker->walk_from_modules(qw(namespace::clean Test::Most));
 
 =head1 DESCRIPTION
 
-MetaCPAN::Walker::Local::Nop implements the local role with looking at the
+MetaCPAN::Walker::Local::Require implements the local role with looking at the
 local perl install.
 
 =head1 AUTHOR
