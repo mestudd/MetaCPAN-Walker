@@ -47,6 +47,13 @@ sub update_available {
 		&& $self->version_latest > $self->version_local;
 }
 
+sub update_requested {
+	my $self = shift;
+
+	return $self->version_local
+		&& $self->version > $self->version_local;
+}
+
 sub update_required {
 	my $self = shift;
 

@@ -15,7 +15,7 @@ my %dist = (
 	license        => ['perl_5'],
 	'meta-spec'    => { version => 2 },
 	release_status => 'stable',
-	version        => 'v0.0.1',
+	version        => 'v1.3',
 );
 
 my $release1 = MetaCPAN::Walker::Release->new(
@@ -49,8 +49,8 @@ my $update_required = MetaCPAN::Walker::Release->new(
 		name      => 'Release-Name',
 	}),
 	version_latest   => version->parse('v1.10'),
-	version_local    => version->parse('v1.2'),
-	version_required => version->parse('v1.3'),
+	version_local    => version->parse('v1.3'),
+	version_required => version->parse('v1.4'),
 );
 
 # use "require $module" as heuristic
@@ -59,12 +59,15 @@ isa_ok my $local = MetaCPAN::Walker::Local::Require->new(),
 	'MetaCPAN::Walker::Local::Require', 'local:fixed is local:fixed';
 
 ok !$at_latest->update_required, 'no update required at latest';
+ok !$at_latest->update_requested, 'no update requested at latest';
 ok !$at_latest->update_available, 'no update available at latest';
 
 ok !$update_available->update_required, 'no update required when local >= required';
+ok $update_available->update_requested, 'update requested when local < version';
 ok $update_available->update_available, 'update available when local < latest';
 
 ok $update_required->update_required, 'update required when local < required';
+ok !$update_required->update_requested, 'no update requested when local = version';
 ok $update_required->update_available, 'update available when required';
 
 done_testing;
