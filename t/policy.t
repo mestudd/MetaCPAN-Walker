@@ -1,11 +1,15 @@
 #!perl -T
 use strict;
 use Test::More;
+
 use CPAN::Meta;
 use MetaCPAN::Walker::Release;
 use Role::Tiny;
+use version;
 
 
+my $version_local = version->parse('v0.0.2');
+my $version_latest = version->parse('v0.0.3');
 my $release = MetaCPAN::Walker::Release->new(
 	cpan_meta => CPAN::Meta->new({
 		name      => 'Release-Name',
@@ -16,7 +20,7 @@ my $release = MetaCPAN::Walker::Release->new(
 		license        => ['perl_5'],
 		'meta-spec'    => { version => '2' },
 		release_status => 'stable',
-		version        => 'v0.0.1',
+		version        => 'v0.0.3',
 		prereqs => {
 			runtime => {
 				requires   => {
@@ -59,6 +63,8 @@ my $release = MetaCPAN::Walker::Release->new(
 			}}},
 		}
 	}),
+	version_local => $version_local,
+	version_latest => $version_latest,
 );
 
 
@@ -73,6 +79,8 @@ ok Role::Tiny::does_role($policy, 'MetaCPAN::Walker::Policy'),
 # Test release
 ok $policy->process_release([], $release),
 	'policy:fixed release processed';
+is $version_latest, $policy->release_version($release),
+	'policy:local requests local release version';
 is_deeply [ sort $release->required_modules ],
 	[qw(runtime::requires)],
 	'policy:fixed only non-core runtime requires by default';
@@ -151,6 +159,12 @@ is_deeply [ sort $release->required_modules ],
 	[qw(option::recommends option::requires runtime::recommends runtime::requires
 		runtime::suggests test::recommends test::requires test::suggests)],
 	'policy:fixed mixed options work together';
+
+
+# Test version
+my $local = MetaCPAN::Walker::Policy::Fixed->new(local => 1);
+is $version_local, $local->release_version($release),
+	'policy:local requests local release version';
 
 
 done_testing;

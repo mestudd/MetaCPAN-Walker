@@ -12,7 +12,7 @@ our $VERSION = '0.0.1';
 
 # CPAN::Meta object
 has cpan_meta => (
-	is      => 'ro',
+	is      => 'rw',
 	required => 1,
 	handles => [qw(name version abstract description licenses
 		effective_prereqs features feature 
@@ -33,12 +33,6 @@ has version_latest => ( is => 'rw' );
 has version_local => ( is => 'rw' );
 
 has version_required => ( is => 'rw' );
-
-sub _build_cpan_meta {
-	my $self = shift;
-
-	return CPAN::Meta->new($self->release->metadata);
-}
 
 sub _build_requirements {
 	my $self = shift;
