@@ -32,6 +32,9 @@ option core     => (is => 'ro', default => 0, negativable => 1);
 option features => (is => 'ro', default => 0, negativable => 1);
 option seen     => (is => 'ro', default => 0, negativable => 1);
 
+# Configure version to request
+option local => (is => 'ro', default => 0);
+
 # Configure the version of perl targetted
 option perl => (is => 'ro', format=> 's', default => '5.22.0');
 
@@ -83,6 +86,15 @@ sub process_release {
 	}
 
 	return $self->seen || !$seen;
+}
+
+sub release_version {
+	my ($self, $release) = @_;
+
+	if ($self->local) {
+		return $release->version_local || $release->version_latest;
+	}
+	return $release->version_latest;
 }
 
 1;

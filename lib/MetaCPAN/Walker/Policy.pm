@@ -6,7 +6,7 @@ use strictures 2;
 
 our $VERSION = '0.0.1';
 
-requires qw(process_release);
+requires qw(process_release release_version);
 
 1;
 __END__
@@ -55,6 +55,14 @@ appearance.
 
 The C<$release> parameter contains the L<MetaCPAN::Walker::Release>
 object defining the release.
+
+=head2 release_version($release)
+
+Implement method called to determine the desired version for a release. The
+method must return the desired version.
+
+The C<$release> parameter contains the L<MetaCPAN::Walker::Release> object
+defining the latest release.
 
 =head1 AUTHOR
 

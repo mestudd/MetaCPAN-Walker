@@ -90,14 +90,27 @@ sub _release_for_distribution {
 		my $r = $self->metacpan->release($name);
 		return undef unless ($r);
 
-		my $release = $self->releases->{$name} = MetaCPAN::Walker::Release->new(
+		my $version = version->parse($r->version);
+		my $release = MetaCPAN::Walker::Release->new(
 			cpan_meta        => CPAN::Meta->new($r->metadata),
 			download_url     => $r->download_url,
-			version_latest   => version->parse($r->version),
+			version_latest   => $version,
 			version_local    => version->parse($self->local_version($r)),
 			version_required => version->parse('v0.0.0'),
 		);
+		my $desired = $self->release_version($release);
+		if ($desired && $desired ne $version) {
+			my $s = $self->metacpan->release({ all => [
+				{ distribution => "$name" },
+				{ version => "$desired" },
+			]});
+			if ($s->total) {
+				$r = $s->next;
+				$release->cpan_meta(CPAN::Meta->new($r->metadata));
+			}
+		}
 
+		$self->releases->{$name} = $release;
 		map $self->_module_release->{$_} = $release, @{ $r->provides // [] };
 	}
 	return $self->releases->{$name};
