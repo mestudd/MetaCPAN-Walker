@@ -50,7 +50,7 @@ and dependencies to walk.
 
 Get the [MetaCPAN::Walker::Release](https://metacpan.org/pod/MetaCPAN::Walker::Release) object that provides the given module.
 
-## release\_for\_module(@names)
+## walk\_from\_modules(@names)
 
 Walk the dependency trees for all given module names, using the policy for
 which parts of the tree to walk, and execute actions.
