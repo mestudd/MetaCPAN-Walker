@@ -4,7 +4,7 @@ use v5.10.0;
 use Moo::Role;
 use strictures 2;
 
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
 requires qw(process_release release_version);
 

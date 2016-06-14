@@ -8,7 +8,7 @@ use version;
  
 use Moo;
 use namespace::clean;
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
 # CPAN::Meta object
 has cpan_meta => (

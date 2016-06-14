@@ -4,7 +4,7 @@ use v5.10.0;
 use Moo::Role;
 use strictures 2;
 
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
 requires qw(begin_release end_release missing_module circular_dependency);
 
